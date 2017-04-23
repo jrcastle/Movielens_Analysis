@@ -7,27 +7,34 @@ import pylab
 
 # Pandas dataframes for the three .dat files
 
-# MovieID::Title::Genres
-#print "Loading movies.dat ..."
-#dfMovies = pd.read_table("movies.dat", 
-#                   sep='::', 
-#                   engine="python", 
-#                   header=None
-#                   )
-# UserID::MovieID::Rating::Timestamp
+print "Loading movies.dat ..."
+dfMovies = pd.read_table("movies.dat", 
+                   sep='::', 
+                   engine="python", 
+                   header=None
+                   )
+dfMovies.columns = ['MovieID', 'Title', 'Genres']
+
 print "Loading ratings.dat ..."
 dfRatings = pd.read_table("ratings.dat",
                           sep='::',
                           engine="python",
                           header=None
                           )
-# UserID::Gender::Age::Occupation::Zip-code
+dfRatings.columns = ['UserID', 'MovieID', 'Rating', 'Timestamp']
+
 print "Loading users.dat ..."
 dfUsers = pd.read_table("users.dat",
                         sep='::',
                         engine="python",
                         header=None
                         )
+dfUsers.columns = ['UserID', 'Gender', 'Age', 'Occupation', 'Zip-code']
+
+# Merge dataframes
+dfMerged = pd.merge(dfRatings, dfUsers, how = 'outer')
+dfFinal  = pd.merge(dfMerged, dfMovies, how = 'outer')
+del dfMerged
 
 # Dictionary that maps occupation code to occupation
 occupations = {}
@@ -64,11 +71,11 @@ ageGroup[50] = "50-55"
 ageGroup[56] = "56+"
 
 # Explore the distribution of occupations who responded #########################################
-occupation_list = dfUsers[3].tolist()
+occupation_list = dfUsers["Occupation"].tolist()
 bin_boundaries = [i+0.5 for i in range(-1,21)]
 
-fig, ax = plt.subplots()
-plt.hist(occupation_list, bins=bin_boundaries) 
+fig = plt.hist(occupation_list, bins=bin_boundaries) 
+ax = plt.subplot(111)
 
 # x axis
 ax.set_xlabel("Occupation")
@@ -84,42 +91,13 @@ ax.set_ylabel("Count")
 
 # save plot
 plt.savefig('plots/OccupationDist.pdf')
-
+plt.close()
 # Explore the distribution of ratings for different occupations #################################
-# dfRatings      UserID::MovieID::Rating::Timestamp 
-# dfUsers        UserID::Gender::Age::Occupation::Zip-code
-occupation_ratings = {}
-total_rows = dfRatings.shape[0]
-cnt = 1
-print "Iterating over ratings.dat..."
-for row in zip(dfRatings[0], dfRatings[2]):
-    if cnt % (total_rows/100) == 0:
-        pct = math.ceil(100*cnt/float(total_rows))
-        print str(pct) + "% complete"
-        break
-    #ENDIF
-
-    UID        = row[0]
-    rating     = row[1]
-    occupation = dfUsers.loc[UID-1][3]
-
-    if occupation in occupation_ratings:
-        occupation_ratings[occupation].append(rating)
-    else:
-        occupation_ratings[occupation] = [];
-        occupation_ratings[occupation].append(rating)
-    #ENDIF
-    cnt = cnt + 1
-#ENDFOR
-
 bin_boundaries = [i+0.5 for i in range(-1,6)]
 for occ in occupations:
-
-    if occ not in occupation_ratings:
-        continue
-    #ENDIF
-    fig, ax = plt.subplots()
-    plt.hist(occupation_ratings[occ], bins=bin_boundaries)
+    occupation_ratings = dfFinal.loc[dfFinal["Occupation"] == occ, "Rating"].tolist()
+    fig = plt.hist(occupation_ratings, bins=bin_boundaries), 
+    ax = plt.subplot(111)
 
     # x axis
     ax.set_xlabel("Rating")
@@ -134,4 +112,30 @@ for occ in occupations:
     name = name.replace(" ", "")
     print name + " created!"
     plt.savefig(name)
+    plt.close()
 #ENDFOR
+
+
+#bin_boundaries = [i+0.5 for i in range(-1,6)]
+#for occ in occupations:
+#
+#    if occ not in occupation_ratings:
+#        continue
+#    #ENDIF
+#    fig, ax = plt.subplots()
+#    plt.hist(occupation_ratings[occ], bins=bin_boundaries)
+#
+#    # x axis
+#    ax.set_xlabel("Rating")
+#    ax.set_xlim(0,6)
+#    # y axis
+#    ax.set_ylabel("Count")
+#    # title
+#    name = occupations[occ] + " Distribution of Ratings"
+#    plt.title(name)
+#    # save plot
+#    name = 'plots/%sRatings.pdf' % (occupations[occ].replace("/", "_"))
+#    name = name.replace(" ", "")
+#    print name + " created!"
+#    plt.savefig(name)
+##ENDFOR
