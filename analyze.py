@@ -7,14 +7,14 @@ import matplotlib.pyplot as plt
 import pylab
 
 # Flags on what to analyze
-block0 = True  # Explore the distribution of ratings for different occupations
-block1 = True  # Explore the distribution of ratings for different occupations
-block2 = True  # Explore the average rating for a genre for all occupations
+block0 = 1  # Explore the distribution of ratings for different occupations
+block1 = 1  # Explore the distribution of ratings for different occupations
+block2 = 1  # Explore the average rating for a genre for all occupations
 
 # Clean the plots directory
-print "Cleaning the plots directory..."
-command = "rm plots/*.pdf"
-os.system(command)
+#print "Cleaning the plots directory..."
+#command = "rm plots/*.pdf"
+#os.system(command)
 
 # Pandas dataframes for the three .dat files
 print "Loading movies.dat ..."
@@ -154,18 +154,24 @@ if block1:
 # Explore the average rating for a genre for all occupations #################################
 if block2:
     for gen in genres:
-        x = []
-        y = []
+        x  = []
+        y  = []
+        ye = []
         for occ in occupations:
-            print "Finding " + gen + "genre average rating for " + occupations[occ] + " occupation..." 
+            print "Finding " + gen + " genre average rating for " + occupations[occ] + " occupation..." 
             occupation_ratings = dfFinal.loc[ (dfFinal["Occupation"] == occ) & (dfFinal["Genres"].str.contains(gen)), "Rating"].tolist()
-            ave_rating = sum(occupation_ratings) / len(occupation_ratings)
+            occupation_ratings = np.array(occupation_ratings)
+            ave_rating = np.average( occupation_ratings )
+            std_rating = np.std( occupation_ratings )
             x.append(occ)
             y.append(ave_rating)
+            ye.append(std_rating)
             #print "Average Rating = " + str(ave_rating)
         #ENDFOR
-        fig = plt.bar(x, y, 1),
+
+        fig = plt.bar(x, y, 1, yerr = ye),
         ax = plt.subplot(111)
+
         # x axis
         ax.set_xlabel("Occupation")
         ax.set_xlim(-1,21)
@@ -174,12 +180,15 @@ if block2:
         plt.xticks(x, xl, rotation='vertical')
         plt.tick_params(axis='x', which='major', labelsize=9)
         plt.gcf().subplots_adjust(bottom=0.35)
+
         # y axis
         ax.set_ylabel("Average Rating")
         ax.set_ylim(0,5)
+
         # title
         name = gen + " Genre: Average Rating Per Occupation"
         plt.title(name)
+
         # save plot
         name = 'plots/Genre%s_AveRating_VS_occupation.pdf' % gen.replace("\\'", "")
         name = name.replace(" ", "")
