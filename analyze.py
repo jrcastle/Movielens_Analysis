@@ -1,3 +1,4 @@
+import time
 import math
 import os
 import scipy as sp
@@ -7,9 +8,10 @@ import matplotlib.pyplot as plt
 import pylab
 
 # Flags on what to analyze
-block0 = 1  # Explore the distribution of occupations who responded
-block1 = 1  # Explore the distribution of ratings for different occupations
-block2 = 1  # Explore the average rating for a genre for all occupations
+block0 = 0  # Explore the distribution of occupations who responded
+block1 = 0  # Explore the distribution of ratings for different occupations
+block2 = 0  # Explore the average rating for a genre for all occupations
+block3 = 1  # Explore average rating for a genre for each gender
 
 # Clean the plots directory
 #print "Cleaning the plots directory..."
@@ -171,6 +173,7 @@ if block1:
 
 # Explore the average rating for a genre for all occupations/ages #################################
 if block2:
+
     for gen in genres:
 
         # Occupation
@@ -207,7 +210,7 @@ if block2:
         plt.title(name)
 
         # save plot
-        name = 'plots/GenreAveRatingVSOccupation/Genre%s_AveRating_VS_occupation.pdf' % gen.replace("\\'", "")
+        name = 'plots/GenreAveRatingVSOccupation/Genre%s_AveRating_VS_occupation.pdf' % gen.replace("\'", "")
         name = name.replace(" ", "")
         print name + " created!"
         plt.savefig(name)
@@ -246,7 +249,7 @@ if block2:
         plt.title(name)
 
         # save plot
-        name = 'plots/GenreAveRatingVSAge/Genre%s_AveRating_VS_Age.pdf' % gen.replace("\\'", "")
+        name = 'plots/GenreAveRatingVSAge/Genre%s_AveRating_VS_Age.pdf' % gen.replace("\'", "")
         name = name.replace(" ", "")
         print name + " created!"
         plt.savefig(name)
@@ -255,10 +258,67 @@ if block2:
     #ENDFOR
 #ENDIF
 
+# Explore average rating for a genre for each gender #################################
+if block3:
+
+    x   =  [i for i in range(0, len(genres))]
+    xM  =  [i-0.2 for i in range(0, len(genres))]
+    xF  =  [i+0.2 for i in range(0, len(genres))]
+    xl  = []
+    yM  = []
+    yMe = []
+    yF  = []
+    yFe = []
+
+    for gen in genres:
+        xl.append(gen)
+        male_ratings = dfFinal.loc[ (dfFinal["Gender"] == "M") & (dfFinal["Genres"].str.contains(gen)), "Rating" ].tolist()
+        female_ratings = dfFinal.loc[ (dfFinal["Gender"] == "F") & (dfFinal["Genres"].str.contains(gen)), "Rating" ].tolist()
+
+        male_ratings = np.array( male_ratings )
+        ave_male_rating = np.average( male_ratings )
+        std_male_rating = np.std( male_ratings )
+        yM.append( ave_male_rating )
+        yMe.append( std_male_rating )
+
+        female_ratings = np.array( female_ratings )
+        ave_female_rating = np.average( female_ratings )
+        std_female_rating = np.std( female_ratings )
+        yF.append( ave_female_rating )
+        yFe.append( std_female_rating )
+    #ENDFOR
+
+    #fig = plt.bar(x, y, 0.5, yerr = ye),
+    ax = plt.subplot(111)
+    male_bar   = ax.bar(xM, yM, width=0.4, color='b', align='center')
+    female_bar = ax.bar(xF, yF, width=0.4, color='r', align='center')
+    ax.legend( (male_bar, female_bar), ('Male', 'Female') )
+
+    # x axis
+    ax.set_xlabel("Genre")
+    ax.set_xlim(-1,len(genres))
+    plt.xticks(x, xl, rotation='vertical')
+    plt.tick_params(axis='x', which='major', labelsize=9)
+    plt.gcf().subplots_adjust(bottom=0.25)
+
+    # y axis
+    ax.set_ylabel("Average Rating")
+    ax.set_ylim(0,5)
+
+    # title
+    name = "Average Genre Rating Per Gender"
+    plt.title(name)
+
+    # save plot
+    name = 'plots/GenreAveRatingVSGender/Genre%s_AveRating_VS_Gender.pdf' % gen.replace("\'", "")
+    name = name.replace(" ", "")
+    print name + " created!"
+    plt.savefig(name)
+    plt.close()
+
 #################################  TODO #################################
-# Remove the apostrophy in Children's when saved to pdf
-# Try to speed up the average rating calculations.  Maybe try making a smaller dataframe and then slicing that? 
-#
-# Explore average rating for a genre for each gender
-#   * two color plot Ave rating VS genre where each color is a gender
+# Try to speed up the average rating calculations.  
+#   * Making a sub-dataframe and then slicing that does not help
+# 
+
 
