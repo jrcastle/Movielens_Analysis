@@ -63,6 +63,8 @@ print "Use \'19\' for Unemployed"
 print "Use \'20\' for Writer"
 print "Use \'0\'  for Other"
 occupation = int( raw_input('Enter your occupation here: ') )
+if occupation not in range(0, 21):
+    occupation = 0
 
 # Age group
 age = int( raw_input("\n\nPlease enter your age (if you prefer not to answer, please enter \'-1\': ") )
@@ -88,6 +90,8 @@ print "Use \'M\' for Male"
 print "Use \'F\' for Female"
 print "Use \'NA\' if you prefer not to answer"
 gender = str( raw_input("Enter your gender here: ") )
+if gender != "M" and gender != "F":
+    gender = "NA"
 
 # Zip code
 print "\n\nWhat is your zip code?"
@@ -131,9 +135,6 @@ if len(ml) == 0:
 del ml
 
 ############################# TODO #############################
-# Make sure each data entry has a check on each of the user's 
-# input and sets a flag if the input is not in the dataset
-# 
-# Based on all flags/entered information build a function, or 
-# many functions, that return(s) the agerage rating of the 
-# movie/genre + standard deviation for that demographic
+# * Based on all flags/entered information build a function, or 
+#   many functions, that return(s) the agerage rating of the 
+#   movie/genre + standard deviation for that demographic
